@@ -226,32 +226,37 @@
             </div>
           </div>
 
-          <form id="quoteForm" class="p-6 grid grid-cols-2 gap-4">
+          <form id="quoteForm" class="p-6 grid grid-cols-2 gap-4"
+                action="https://formspree.io/f/mjglpnkj"
+                method="POST">
             <label class="col-span-1">
               <span class="block text-[12px] font-semibold uppercase tracking-wider text-navy-800/70 mb-1.5">First Name</span>
-              <input type="text" required class="field" placeholder="Jane" />
+              <input type="text" name="first_name" required class="field" placeholder="Jane" />
             </label>
             <label class="col-span-1">
               <span class="block text-[12px] font-semibold uppercase tracking-wider text-navy-800/70 mb-1.5">Last Name</span>
-              <input type="text" required class="field" placeholder="Doe" />
+              <input type="text" name="last_name" required class="field" placeholder="Doe" />
             </label>
             <label class="col-span-2">
               <span class="block text-[12px] font-semibold uppercase tracking-wider text-navy-800/70 mb-1.5">Email</span>
-              <input type="email" required class="field" placeholder="you@company.com" />
+              <input type="email" name="email" required class="field" placeholder="you@company.com" />
             </label>
             <label class="col-span-2">
               <span class="block text-[12px] font-semibold uppercase tracking-wider text-navy-800/70 mb-1.5">Phone</span>
-              <input type="tel" required class="field" placeholder="(847) 555-0140" />
+              <input type="tel" name="phone" required class="field" placeholder="(224) 555-0140" />
             </label>
             <label class="col-span-2">
               <span class="block text-[12px] font-semibold uppercase tracking-wider text-navy-800/70 mb-1.5">Project Location</span>
-              <input type="text" required class="field" placeholder="Address or city" />
+              <input type="text" name="project_location" required class="field" placeholder="Address or city" />
             </label>
+            <!-- Honeypot field for spam bots; real users won't fill this -->
+            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+            <input type="hidden" name="_subject" value="New quote request from linepros.co" />
             <button type="submit" class="btn col-span-2 mt-2 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-navy-800 hover:bg-navy-700 text-white font-semibold shadow-lift">
-              Submit
+              <span data-label>Submit</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h12l-4-4 1.4-1.4L20.8 12l-6.4 5.4L13 16l4-4H5v0Z"/></svg>
             </button>
-            <p class="col-span-2 text-[12px] text-navy-800/55 text-center">By submitting you agree to be contacted about your project. No spam — ever.</p>
+            <p id="formMsg" class="col-span-2 text-[12px] text-navy-800/55 text-center">By submitting you agree to be contacted about your project. No spam — ever.</p>
           </form>
         </div>
       </div>
@@ -581,13 +586,51 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  document.getElementById('quoteForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var btn = this.querySelector('button[type="submit"]');
-    btn.textContent = "Sent — we'll be in touch";
-    btn.classList.add('bg-emerald-500');
-    btn.classList.remove('bg-navy-800', 'hover:bg-navy-700');
-  });
+  (function () {
+    var form = document.getElementById('quoteForm');
+    var btn = form.querySelector('button[type="submit"]');
+    var label = btn.querySelector('[data-label]');
+    var msg = document.getElementById('formMsg');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      if (form.action.indexOf('YOUR_FORM_ID') !== -1) {
+        msg.textContent = 'Form not yet connected. Please email us directly.';
+        msg.className = 'col-span-2 text-[12px] text-amber-600 text-center';
+        return;
+      }
+
+      label.textContent = 'Sending…';
+      btn.disabled = true;
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form),
+      })
+        .then(function (r) {
+          if (r.ok) {
+            label.textContent = "Sent — we'll be in touch";
+            btn.classList.add('bg-emerald-500');
+            btn.classList.remove('bg-navy-800', 'hover:bg-navy-700');
+            msg.textContent = 'Thanks! We typically respond within one business day.';
+            msg.className = 'col-span-2 text-[12px] text-emerald-700 text-center';
+            form.reset();
+          } else {
+            return r.json().then(function (data) {
+              throw new Error((data.errors && data.errors[0] && data.errors[0].message) || 'Submission failed');
+            });
+          }
+        })
+        .catch(function (err) {
+          label.textContent = 'Try again';
+          btn.disabled = false;
+          msg.textContent = 'Something went wrong: ' + err.message + '. Please call us at (224) 542-0673.';
+          msg.className = 'col-span-2 text-[12px] text-red-600 text-center';
+        });
+    });
+  })();
 </script>
 </body>
 </html>
