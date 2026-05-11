@@ -59,7 +59,10 @@
   .hero-tone {
     position:absolute; inset:0; pointer-events:none;
     background:
-      linear-gradient(100deg, rgba(6,18,42,.55) 0%, rgba(10,27,58,.30) 45%, rgba(10,27,58,.10) 75%, rgba(6,18,42,.20) 100%);
+      /* Sky-blue brand tint, strongest near the headline */
+      radial-gradient(55% 60% at 42% 50%, rgba(60,173,227,.38) 0%, rgba(60,173,227,.12) 55%, transparent 80%),
+      /* Navy dim for white-text contrast */
+      linear-gradient(100deg, rgba(6,18,42,.55) 0%, rgba(10,27,58,.35) 45%, rgba(10,27,58,.15) 75%, rgba(6,18,42,.25) 100%);
   }
   .hero-tone::after {
     content:''; position:absolute; inset:auto 0 0 0; height: 28%;
